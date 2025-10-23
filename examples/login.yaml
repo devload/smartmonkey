@@ -1,0 +1,45 @@
+# Smart Monkey HintScript Example - Login Flow
+# 로그인 플로우 탐색 예시
+
+objectives:
+  # 우선적으로 탐색할 요소들
+  prefer:
+    - "Login"
+    - "로그인"
+    - "Sign In"
+    - "Submit"
+    - "확인"
+
+blacklist:
+  # 절대 클릭하지 않을 요소들
+  - ["Logout", "로그아웃", "Sign Out"]
+  - ["Delete", "삭제", "Remove"]
+  - ["Purchase", "구매", "Buy"]
+  - ["Reset", "초기화"]
+
+inputs:
+  # 입력 필드별 값 (필드 이름은 resource-id나 text로 매칭)
+  username:
+    - "test@whatap.io"
+    - "qa_user_001"
+
+  password:
+    - "Test1234!"
+    - "QaPassword123"
+
+  email:
+    - "qa+${RAND}@whatap.io"
+
+  phone:
+    - "010-1234-${RAND4}"
+
+guard:
+  # 안전 장치
+  maxExternalHops: 1        # 앱 외부로 최대 1번만 이동
+  allowPermissions: true    # 권한 요청 자동 허용
+  timeoutPerAction: 5       # 액션당 최대 5초
+
+constraints:
+  # 제약 조건
+  maxDepth: 20              # 최대 탐색 깊이
+  maxActionsPerState: 3     # 한 상태에서 최대 3개 액션

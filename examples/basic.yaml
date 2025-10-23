@@ -1,0 +1,25 @@
+# Smart Monkey HintScript Example - Basic Exploration
+# 기본 탐색 예시
+
+objectives:
+  prefer:
+    - "Settings"
+    - "설정"
+    - "Home"
+    - "Menu"
+
+blacklist:
+  - ["Exit", "종료", "Quit"]
+  - ["Delete All", "모두 삭제"]
+
+inputs:
+  text:
+    - "Test Input ${RAND}"
+
+guard:
+  maxExternalHops: 0        # 앱 외부로 이동 금지
+  allowPermissions: true
+
+constraints:
+  maxDepth: 15
+  maxActionsPerState: 5

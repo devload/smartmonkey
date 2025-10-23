@@ -1,0 +1,112 @@
+{
+  "start_time": "2025-10-23T10:06:00.952916",
+  "end_time": "2025-10-23T10:07:15.824607",
+  "duration_seconds": 74.871691,
+  "total_events": 10,
+  "unique_states": 3,
+  "total_states": 10,
+  "states": [
+    {
+      "activity": "Unknown",
+      "element_count": 69,
+      "state_hash": "8ce33882bc7ea7df87cd87c092be53c6",
+      "screenshot": "./test_reports/settings_test/screenshots/screenshot_0000.png"
+    },
+    {
+      "activity": "Unknown",
+      "element_count": 57,
+      "state_hash": "5ed03d339dd89a85c1d0fe65fa33d099",
+      "screenshot": "./test_reports/settings_test/screenshots/screenshot_0001.png"
+    },
+    {
+      "activity": "Unknown",
+      "element_count": 32,
+      "state_hash": "f3067f611896014094508a2a9ad1ffd5",
+      "screenshot": "./test_reports/settings_test/screenshots/screenshot_0002.png"
+    },
+    {
+      "activity": "Unknown",
+      "element_count": 32,
+      "state_hash": "f3067f611896014094508a2a9ad1ffd5",
+      "screenshot": "./test_reports/settings_test/screenshots/screenshot_0003.png"
+    },
+    {
+      "activity": "Unknown",
+      "element_count": 32,
+      "state_hash": "f3067f611896014094508a2a9ad1ffd5",
+      "screenshot": "./test_reports/settings_test/screenshots/screenshot_0004.png"
+    },
+    {
+      "activity": "Unknown",
+      "element_count": 32,
+      "state_hash": "f3067f611896014094508a2a9ad1ffd5",
+      "screenshot": "./test_reports/settings_test/screenshots/screenshot_0005.png"
+    },
+    {
+      "activity": "Unknown",
+      "element_count": 32,
+      "state_hash": "f3067f611896014094508a2a9ad1ffd5",
+      "screenshot": "./test_reports/settings_test/screenshots/screenshot_0006.png"
+    },
+    {
+      "activity": "Unknown",
+      "element_count": 32,
+      "state_hash": "f3067f611896014094508a2a9ad1ffd5",
+      "screenshot": "./test_reports/settings_test/screenshots/screenshot_0007.png"
+    },
+    {
+      "activity": "Unknown",
+      "element_count": 32,
+      "state_hash": "f3067f611896014094508a2a9ad1ffd5",
+      "screenshot": "./test_reports/settings_test/screenshots/screenshot_0008.png"
+    },
+    {
+      "activity": "Unknown",
+      "element_count": 32,
+      "state_hash": "f3067f611896014094508a2a9ad1ffd5",
+      "screenshot": "./test_reports/settings_test/screenshots/screenshot_0009.png"
+    }
+  ],
+  "actions": [
+    {
+      "type": "back",
+      "repr": "BackAction()"
+    },
+    {
+      "type": "back",
+      "repr": "BackAction()"
+    },
+    {
+      "type": "back",
+      "repr": "BackAction()"
+    },
+    {
+      "type": "back",
+      "repr": "BackAction()"
+    },
+    {
+      "type": "back",
+      "repr": "BackAction()"
+    },
+    {
+      "type": "back",
+      "repr": "BackAction()"
+    },
+    {
+      "type": "back",
+      "repr": "BackAction()"
+    },
+    {
+      "type": "back",
+      "repr": "BackAction()"
+    },
+    {
+      "type": "back",
+      "repr": "BackAction()"
+    },
+    {
+      "type": "back",
+      "repr": "BackAction()"
+    }
+  ]
+}

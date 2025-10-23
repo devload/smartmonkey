@@ -1,0 +1,7 @@
+error: unexpected argument '--search' found
+
+  tip: to pass '--search' as a value, use '-- --search'
+
+Usage: codex exec <PROMPT>
+
+For more information, try '--help'.
