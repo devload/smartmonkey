@@ -21,6 +21,40 @@ class AppManager:
         """
         self.device = device
 
+    def get_launcher_activity(self, package: str) -> Optional[str]:
+        """
+        Get the main launcher activity for a package
+
+        Args:
+            package: App package name
+
+        Returns:
+            Launcher activity name or None
+        """
+        try:
+            cmd = f"dumpsys package {package} | grep -A 5 'android.intent.action.MAIN'"
+            output = self.device.adb.shell(cmd)
+
+            # Parse output to find launcher activity
+            # Format: "io.whatap.session.sample/.Screen1Activity filter"
+            for line in output.split('\n'):
+                if package in line and '/' in line:
+                    # Extract activity name
+                    parts = line.split()
+                    for part in parts:
+                        if package in part and '/' in part:
+                            # Extract just the activity part after /
+                            activity = part.split('/')[-1]
+                            logger.info(f"Found launcher activity: {activity}")
+                            return activity
+
+            logger.warning(f"Could not find launcher activity for {package}")
+            return None
+
+        except Exception as e:
+            logger.error(f"Failed to get launcher activity: {e}")
+            return None
+
     def launch_app(self, package: str, activity: Optional[str] = None, wait: bool = True) -> bool:
         """
         Launch app
@@ -34,13 +68,36 @@ class AppManager:
             True if successful
         """
         try:
+            # Determine which activity to launch
             if activity:
                 component = f"{package}/{activity}"
             else:
-                component = package
+                # Auto-detect launcher activity
+                launcher_activity = self.get_launcher_activity(package)
+                if launcher_activity:
+                    component = f"{package}/{launcher_activity}"
+                else:
+                    # Fallback to monkey if we can't find launcher activity
+                    logger.warning(f"Using monkey command as fallback for {package}")
+                    cmd = f"monkey -p {package} -c android.intent.category.LAUNCHER 1"
+                    self.device.adb.shell(cmd)
 
-            cmd = f"monkey -p {package} -c android.intent.category.LAUNCHER 1"
-            self.device.adb.shell(cmd)
+                    if wait:
+                        time.sleep(2)
+
+                    logger.info(f"Launched app: {package} (via monkey)")
+                    return True
+
+            # Use am start to launch app
+            cmd = f"am start -n {component} -a android.intent.action.MAIN -c android.intent.category.LAUNCHER"
+            output = self.device.adb.shell(cmd)
+
+            # Check if launch was successful
+            if "Error" in output or "exception" in output.lower():
+                logger.warning(f"am start failed, trying with monkey command: {output}")
+                # Fallback to monkey command
+                cmd = f"monkey -p {package} -c android.intent.category.LAUNCHER 1"
+                self.device.adb.shell(cmd)
 
             if wait:
                 time.sleep(2)  # Wait for app to launch

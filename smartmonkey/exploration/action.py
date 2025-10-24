@@ -43,6 +43,16 @@ class Action(ABC):
     def __repr__(self) -> str:
         pass
 
+    @abstractmethod
+    def to_dict(self) -> dict:
+        """
+        Convert action to dictionary for JSON serialization
+
+        Returns:
+            Dictionary representation of action
+        """
+        pass
+
 
 class TapAction(Action):
     """Tap action"""
@@ -77,6 +87,35 @@ class TapAction(Action):
             return f"TapAction(element={self.element.class_name}, text='{self.element.text}')"
         return f"TapAction(x={self.x}, y={self.y})"
 
+    def to_dict(self) -> dict:
+        """Convert to dictionary with detailed info"""
+        result = {
+            "type": self.action_type.value,
+            "coordinates": {"x": self.x, "y": self.y}
+        }
+
+        if self.element:
+            result["element"] = {
+                "class": self.element.class_name,
+                "text": self.element.text,
+                "resource_id": self.element.resource_id,
+                "content_desc": self.element.content_desc,
+                "bounds": {
+                    "left": self.element.bounds.left,
+                    "top": self.element.bounds.top,
+                    "right": self.element.bounds.right,
+                    "bottom": self.element.bounds.bottom
+                },
+                "rect": {
+                    "x1": self.element.bounds.left,
+                    "y1": self.element.bounds.top,
+                    "x2": self.element.bounds.right,
+                    "y2": self.element.bounds.bottom
+                }
+            }
+
+        return result
+
 
 class SwipeAction(Action):
     """Swipe action"""
@@ -96,6 +135,15 @@ class SwipeAction(Action):
     def __repr__(self) -> str:
         return f"SwipeAction(from=({self.x1},{self.y1}), to=({self.x2},{self.y2}))"
 
+    def to_dict(self) -> dict:
+        """Convert to dictionary with detailed info"""
+        return {
+            "type": self.action_type.value,
+            "from": {"x": self.x1, "y": self.y1},
+            "to": {"x": self.x2, "y": self.y2},
+            "duration_ms": self.duration
+        }
+
 
 class BackAction(Action):
     """Back button action"""
@@ -109,6 +157,13 @@ class BackAction(Action):
 
     def __repr__(self) -> str:
         return "BackAction()"
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary with detailed info"""
+        return {
+            "type": self.action_type.value,
+            "description": "Press back button"
+        }
 
 
 class HomeAction(Action):
@@ -124,6 +179,13 @@ class HomeAction(Action):
     def __repr__(self) -> str:
         return "HomeAction()"
 
+    def to_dict(self) -> dict:
+        """Convert to dictionary with detailed info"""
+        return {
+            "type": self.action_type.value,
+            "description": "Press home button"
+        }
+
 
 class TextInputAction(Action):
     """Text input action"""
@@ -138,3 +200,11 @@ class TextInputAction(Action):
 
     def __repr__(self) -> str:
         return f"TextInputAction(text='{self.text}')"
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary with detailed info"""
+        return {
+            "type": self.action_type.value,
+            "text": self.text,
+            "description": f"Input text: '{self.text}'"
+        }

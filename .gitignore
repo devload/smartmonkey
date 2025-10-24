@@ -52,3 +52,19 @@ reports/
 
 # Project specific
 smartmonkey.egg-info/
+
+# AI workspace and test files
+ai_workspace/
+ai_workspace_template/
+auto_responder.log
+
+# Test scripts
+test_*.sh
+run_*.sh
+check_*.sh
+simple_responder.py
+update_existing_runs.py
+
+# Documentation drafts
+AI_TEST_SUMMARY.md
+docs/ideas/
