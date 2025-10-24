@@ -122,17 +122,17 @@ class ExplorationEngine:
                 logger.info(f"Clickable elements: {len(state.get_clickable_elements())}")
                 logger.info(f"State hash: {state_hash[:8]}... (visited {self.visited_states[state_hash]} times)")
 
+                # ALWAYS check if app is still running (every step)
+                if not self._is_app_running():
+                    logger.error(f"🔴 APP EXITED! App {self.package} is not in foreground!")
+                    result.crash_detected = True
+                    result.crash_info = f"App exited or moved to background after step {step + 1}"
+                    logger.error(f"Last action before exit: {result.actions[-1] if result.actions else 'None'}")
+                    break
+
                 # Check if app crashed (no clickable elements for multiple consecutive steps)
                 if len(state.get_clickable_elements()) == 0:
                     self.consecutive_no_elements += 1
-
-                    # Also check if app is still running
-                    if not self._is_app_running():
-                        logger.error(f"🔴 APP CRASH DETECTED! App {self.package} is not running!")
-                        result.crash_detected = True
-                        result.crash_info = f"App stopped running after step {step + 1}"
-                        logger.error(f"Last action before crash: {result.actions[-1] if result.actions else 'None'}")
-                        break
 
                     if self.consecutive_no_elements >= 3:
                         logger.warning(f"⚠️ No clickable elements for {self.consecutive_no_elements} consecutive steps")

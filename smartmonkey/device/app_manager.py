@@ -123,8 +123,8 @@ class AppManager:
             Current activity name or None
         """
         try:
-            # Try dumpsys window
-            cmd = "dumpsys window windows | grep -E 'mCurrentFocus|mFocusedApp'"
+            # Try dumpsys window (not "windows")
+            cmd = "dumpsys window | grep -E 'mCurrentFocus|mFocusedApp'"
             output = self.device.adb.shell(cmd)
 
             if output:

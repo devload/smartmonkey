@@ -124,7 +124,8 @@ class UIParser:
             clickable = node.get('clickable', 'false') == 'true'
             scrollable = node.get('scrollable', 'false') == 'true'
             enabled = node.get('enabled', 'true') == 'true'
-            visible = node.get('displayed', 'false') == 'true'
+            # 'displayed' attribute is not always present, check bounds instead
+            visible = node.get('displayed', 'true') == 'true'
 
             # Parse bounds: "[left,top][right,bottom]"
             bounds_str = node.get('bounds', '[0,0][0,0]')

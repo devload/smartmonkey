@@ -14,8 +14,31 @@ logger = get_logger(__name__)
 class ReportGenerator:
     """Generate exploration reports"""
 
-    def __init__(self):
-        pass
+    def __init__(self, base_url="http://localhost:8000"):
+        self.base_url = base_url
+
+    def _get_screenshot_url(self, output_path: str, screenshot_path: str, step: int) -> str:
+        """
+        Generate HTTP URL for screenshot
+
+        Args:
+            output_path: Path to report.json
+            screenshot_path: Relative screenshot path
+            step: Step number
+
+        Returns:
+            HTTP URL for screenshot
+        """
+        # Extract report folder name from output_path
+        # e.g., ./reports/grafana_test/report.json -> grafana_test
+        import re
+        match = re.search(r'reports/([^/]+)/', output_path)
+        if match:
+            report_name = match.group(1)
+            return f"{self.base_url}/{report_name}/screenshots/screenshot_{step:04d}.png"
+
+        # Fallback
+        return f"{self.base_url}/screenshots/screenshot_{step:04d}.png"
 
     def generate_text_report(self, result: ExplorationResult) -> str:
         """
@@ -116,6 +139,9 @@ class ReportGenerator:
             import os
             ensure_dir(os.path.dirname(output_path))
 
+            # Calculate timestamps for each state based on start_time
+            state_duration_per_step = result.duration / max(len(result.states), 1)
+
             report_data = {
                 "start_time": result.start_time.isoformat(),
                 "end_time": result.end_time.isoformat() if result.end_time else None,
@@ -127,19 +153,25 @@ class ReportGenerator:
                 "crash_info": result.crash_info,
                 "states": [
                     {
+                        "step": i,
+                        "timestamp": (result.start_time.timestamp() + i * state_duration_per_step),
+                        "datetime": datetime.fromtimestamp(result.start_time.timestamp() + i * state_duration_per_step).isoformat(),
                         "activity": state.activity,
                         "element_count": len(state.elements),
                         "state_hash": state.state_hash,
-                        "screenshot": state.screenshot_path
+                        "screenshot": state.screenshot_path,
+                        "screenshot_url": self._get_screenshot_url(output_path, state.screenshot_path, i)
                     }
-                    for state in result.states
+                    for i, state in enumerate(result.states)
                 ],
                 "actions": [
                     {
+                        "step": i,
+                        "timestamp": (result.start_time.timestamp() + i * state_duration_per_step),
                         "type": action.action_type.value,
                         "repr": repr(action)
                     }
-                    for action in result.actions
+                    for i, action in enumerate(result.actions)
                 ]
             }
 
