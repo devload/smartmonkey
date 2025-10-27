@@ -6,6 +6,7 @@ import sys
 import os
 from datetime import datetime
 import random
+import argparse
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -59,7 +60,86 @@ def filter_safe_elements(elements, min_y=150):
 
     return safe_elements
 
+def parse_args():
+    """Parse command line arguments"""
+    parser = argparse.ArgumentParser(
+        description='SmartMonkey Web Navigation Test - Automated mobile web testing with Chrome DevTools',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog='''
+Examples:
+  # Basic usage with default settings
+  ./run_web_navigation_safe.py
+
+  # Specify device and URL
+  ./run_web_navigation_safe.py -d emulator-5556 -u https://www.google.com
+
+  # Run 20 steps with custom output directory
+  ./run_web_navigation_safe.py -s 20 -o ./my_reports
+
+  # Full customization
+  ./run_web_navigation_safe.py \\
+    -d emulator-5556 \\
+    -u https://m.naver.com \\
+    -s 15 \\
+    -p 9222 \\
+    --url-bar-height 200 \\
+    -o ./custom_reports
+        '''
+    )
+
+    parser.add_argument(
+        '-d', '--device',
+        default='emulator-5554',
+        help='Android device serial (default: emulator-5554)'
+    )
+
+    parser.add_argument(
+        '-u', '--url',
+        default='https://m.naver.com',
+        help='Starting URL (default: https://m.naver.com)'
+    )
+
+    parser.add_argument(
+        '-s', '--steps',
+        type=int,
+        default=10,
+        help='Number of exploration steps (default: 10)'
+    )
+
+    parser.add_argument(
+        '-p', '--port',
+        type=int,
+        default=9222,
+        help='Chrome DevTools Protocol port (default: 9222)'
+    )
+
+    parser.add_argument(
+        '--url-bar-height',
+        type=int,
+        default=150,
+        help='URL bar height in pixels to exclude from clicks (default: 150)'
+    )
+
+    parser.add_argument(
+        '-o', '--output',
+        default='./reports',
+        help='Output directory for reports (default: ./reports)'
+    )
+
+    parser.add_argument(
+        '--stuck-threshold',
+        type=int,
+        default=5,
+        help='Number of same-page repetitions before pressing back (default: 5)'
+    )
+
+    return parser.parse_args()
+
+
 async def main():
+    # Parse command line arguments
+    args = parse_args()
+
     # 고유한 테스트 ID 생성 (타임스탬프 기반)
     test_id = f"web_navigation_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
@@ -67,10 +147,14 @@ async def main():
     print("🌐 SmartMonkey 웹 네비게이션 테스트 (안전장치 추가)")
     print("=" * 70)
     print(f"📋 테스트 ID: {test_id}")
+    print(f"📱 Device: {args.device}")
+    print(f"🌐 Start URL: {args.url}")
+    print(f"🔢 Steps: {args.steps}")
+    print(f"📂 Output: {args.output}")
 
     # 1. ChromeDevice 초기화
     print("\n📱 Step 1: ChromeDevice 초기화...")
-    device = ChromeDevice(device_serial="emulator-5554", cdp_port=9222)
+    device = ChromeDevice(device_serial=args.device, cdp_port=args.port)
 
     # 2. 홈 화면으로 이동 (초기화)
     print("\n🏠 Step 2: 홈 버튼 누르기 (초기화)...")
@@ -82,16 +166,16 @@ async def main():
     device.device.adb.shell("am force-stop com.android.chrome")
     await asyncio.sleep(1.0)
 
-    # Chrome을 m.naver.com으로 실행
-    device.device.adb.shell('am start -n com.android.chrome/com.google.android.apps.chrome.Main -d "https://m.naver.com"')
+    # Chrome을 지정된 URL로 실행
+    device.device.adb.shell(f'am start -n com.android.chrome/com.google.android.apps.chrome.Main -d "{args.url}"')
     await asyncio.sleep(3.0)
 
     # 포트 포워딩 재설정
-    device.device.adb.execute("forward tcp:9222 localabstract:chrome_devtools_remote")
+    device.device.adb.execute(f"forward tcp:{args.port} localabstract:chrome_devtools_remote")
     await asyncio.sleep(1.0)
 
     print("\n🔌 Step 4: Chrome DevTools 연결...")
-    initial_url = "https://m.naver.com"
+    initial_url = args.url
     if not await device.connect(initial_url=initial_url):
         print("❌ Chrome 연결 실패!")
         return
@@ -99,7 +183,7 @@ async def main():
     print(f"✅ 연결 성공: {device.url}")
 
     # 5. 탐색 실행
-    print("\n🚀 Step 5: 웹 네비게이션 시작 (10 steps)...")
+    print(f"\n🚀 Step 5: 웹 네비게이션 시작 ({args.steps} steps)...")
 
     result = ExplorationResult()
     visited_urls = set()
@@ -108,8 +192,8 @@ async def main():
     stuck_count = 0  # 같은 페이지에서 반복 카운트
 
     try:
-        for step in range(10):
-            print(f"\n[Step {step+1}/10]")
+        for step in range(args.steps):
+            print(f"\n[Step {step+1}/{args.steps}]")
 
             # 현재 상태 가져오기
             state = await device.get_current_state()
@@ -138,9 +222,9 @@ async def main():
                 stuck_count += 1
                 print(f"   → 같은 페이지 (반복 {stuck_count}회)")
 
-                # 5번 연속 같은 페이지면 Back 버튼
-                if stuck_count >= 5:
-                    print(f"   ⚠️  5회 반복, Back 버튼으로 이동 시도...")
+                # N번 연속 같은 페이지면 Back 버튼
+                if stuck_count >= args.stuck_threshold:
+                    print(f"   ⚠️  {args.stuck_threshold}회 반복, Back 버튼으로 이동 시도...")
                     # Back 액션 생성 및 기록
                     from smartmonkey.exploration.action import BackAction
                     action = BackAction()
@@ -151,7 +235,7 @@ async def main():
                     await asyncio.sleep(1.5)
 
                     # Back 후 스크린샷 캡처
-                    screenshot_dir = f"./reports/{test_id}/screenshots"
+                    screenshot_dir = f"{args.output}/{test_id}/screenshots"
                     os.makedirs(screenshot_dir, exist_ok=True)
                     screenshot_path = f"{screenshot_dir}/screenshot_{step:04d}.png"
 
@@ -176,7 +260,7 @@ async def main():
             result.states.append(state)
 
             # **안전한 요소 필터링** - URL 바 제외
-            safe_elements = filter_safe_elements(state.elements, min_y=150)
+            safe_elements = filter_safe_elements(state.elements, min_y=args.url_bar_height)
             print(f"   🛡️  안전한 요소: {len(safe_elements)}개 (URL 바 제외)")
 
             if not safe_elements:
@@ -246,7 +330,7 @@ async def main():
                 await asyncio.sleep(2.0)  # 스크롤 후 안정화 대기
 
                 # 스크롤 후 현재 step의 스크린샷 캡처 (스크롤 결과 확인용)
-                screenshot_dir = f"./reports/{test_id}/screenshots"
+                screenshot_dir = f"{args.output}/{test_id}/screenshots"
                 os.makedirs(screenshot_dir, exist_ok=True)
                 scroll_screenshot_path = f"{screenshot_dir}/screenshot_{step:04d}_scroll.png"
                 await device.capture_screenshot(scroll_screenshot_path)
@@ -268,7 +352,7 @@ async def main():
             await asyncio.sleep(4.0)
 
             # **스크린샷 캡처 (클릭 후 페이지 로딩 완료 후, 클릭 위치 표시)**
-            screenshot_dir = f"./reports/{test_id}/screenshots"
+            screenshot_dir = f"{args.output}/{test_id}/screenshots"
             os.makedirs(screenshot_dir, exist_ok=True)
             screenshot_path = f"{screenshot_dir}/screenshot_{step:04d}.png"
 
@@ -300,11 +384,11 @@ async def main():
     print("\n📊 Step 6: 리포트 생성...")
     generator = ReportGenerator()
 
-    json_path = f"./reports/{test_id}/report.json"
+    json_path = f"{args.output}/{test_id}/report.json"
     generator.save_json_report(result, json_path)
     print(f"✅ JSON 리포트: {json_path}")
 
-    txt_path = f"./reports/{test_id}/report.txt"
+    txt_path = f"{args.output}/{test_id}/report.txt"
     generator.save_text_report(result, txt_path)
     print(f"✅ 텍스트 리포트: {txt_path}")
 

@@ -1,0 +1,1 @@
+"""SmartMonkey CLI commands package"""

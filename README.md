@@ -35,15 +35,24 @@ SmartMonkey is an **intelligent Android app testing tool** that goes beyond trad
 - **Weighted Strategy**: Unvisited elements get 10x priority
 - **Context-Aware**: Recognizes buttons, text fields, and interactive elements
 - **State Hashing**: Avoids testing duplicate UI states
+- **Web Testing**: Chrome-based web app testing with DOM analysis
 
 ### 💥 Crash Detection
 - **Real-time Monitoring**: Detects when app stops running or moves to background
 - **Empty State Detection**: Identifies UI deadlocks
 - **Detailed Reports**: Full crash context with screenshots
 
+### 🌐 Web Navigation Testing (NEW!)
+- **Chrome DevTools Protocol**: Direct DOM inspection and manipulation
+- **Visual Markers**: Click positions (red crosshair) and swipe gestures (green→blue with arrow)
+- **Smart Scrolling**: Automatic scroll when elements are off-screen
+- **Overlay Detection**: Detects and closes modals/menus before scrolling
+- **Initial Page Capture**: Screenshots starting page before any actions
+- **Independent Step Counting**: Swipes count as separate steps with their own screenshots
+
 ### 📊 Grafana Dashboard Integration
 - **Beautiful Visualizations**: Interactive test result dashboards
-- **Screenshot Gallery**: Scrollable gallery of all test screenshots  
+- **Screenshot Gallery**: Scrollable gallery of all test screenshots
 - **Test History**: Track multiple test runs over time
 - **Drill-Down Navigation**: Click test ID to view detailed results
 
@@ -51,6 +60,7 @@ SmartMonkey is an **intelligent Android app testing tool** that goes beyond trad
 - **Full CLI Parameters**: Device, package, steps, strategy all configurable
 - **Multi-device Support**: Works with physical devices and emulators
 - **JSON & Text Reports**: Both machine and human-readable formats
+- **Dual Mode**: Native Android apps + Web apps testing
 
 ---
 
@@ -108,7 +118,7 @@ Available devices:
   - RFCX919P8ZF (Samsung SM-A356N)
 ```
 
-### 2. Run a Basic Test
+### 2. Run a Native App Test
 
 ```bash
 python3 -m smartmonkey.cli.main run \
@@ -117,7 +127,27 @@ python3 -m smartmonkey.cli.main run \
   --steps 20
 ```
 
-### 3. Run Multiple Tests
+### 3. Run a Web Navigation Test (NEW!)
+
+```bash
+# Test a mobile website
+python3 -m smartmonkey.cli.main web \
+  --device emulator-5556 \
+  --url https://m.naver.com \
+  --steps 10
+
+# Or use the convenience script
+./bin/smartmonkey web -d emulator-5556 -u https://m.naver.com -s 10
+```
+
+**Features:**
+- ✅ Captures starting page before any actions
+- ✅ Visual markers on screenshots (clicks & swipes)
+- ✅ Smart scrolling when elements are off-screen
+- ✅ Detects and closes overlays/modals automatically
+- ✅ Each swipe counts as an independent step
+
+### 4. Run Multiple Tests
 
 ```bash
 # Run 5 tests with 20 steps each
@@ -136,13 +166,14 @@ done
 
 ## 📖 CLI Parameters
 
-### Full Command Syntax
+### Native App Testing
 
+**Full Command Syntax:**
 ```bash
 python3 -m smartmonkey.cli.main run [OPTIONS]
 ```
 
-### Available Options
+**Available Options:**
 
 | Parameter | Short | Description | Default | Required |
 |-----------|-------|-------------|---------|----------|
@@ -156,14 +187,41 @@ python3 -m smartmonkey.cli.main run [OPTIONS]
 
 \* Required if multiple devices are connected
 
+### Web Navigation Testing
+
+**Full Command Syntax:**
+```bash
+python3 -m smartmonkey.cli.main web [OPTIONS]
+# or
+./bin/smartmonkey web [OPTIONS]
+```
+
+**Available Options:**
+
+| Parameter | Short | Description | Default | Required |
+|-----------|-------|-------------|---------|----------|
+| `--device` | `-d` | Device serial number | Auto-detect | No* |
+| `--url` | `-u` | Starting URL to test | - | **Yes** |
+| `--steps` | `-s` | Maximum number of actions | 10 | No |
+| `--output` | `-o` | Output directory path | `./reports` | No |
+
+\* Required if multiple devices are connected
+
+**Web Testing Features:**
+- 📸 **Initial Screenshot**: Captures starting page before any actions
+- 🎯 **Visual Markers**: Red crosshair for clicks, green→blue arrow for swipes
+- 📜 **Smart Scrolling**: Auto-scrolls when elements are off-screen
+- 🚪 **Overlay Detection**: Detects and closes modals/menus automatically
+- 📊 **Independent Steps**: Swipes count as separate steps with their own screenshots
+
 ### Examples
 
-#### Basic Test (Auto-detect device)
+#### Native App - Basic Test (Auto-detect device)
 ```bash
 python3 -m smartmonkey.cli.main run --package com.example.app
 ```
 
-#### Specify All Parameters
+#### Native App - Specify All Parameters
 ```bash
 python3 -m smartmonkey.cli.main run \
   --device emulator-5556 \
@@ -173,19 +231,35 @@ python3 -m smartmonkey.cli.main run \
   --output ./my_test_results
 ```
 
-#### Disable Screenshots
+#### Native App - Disable Screenshots
 ```bash
 python3 -m smartmonkey.cli.main run \
   --package com.example.app \
   --no-screenshots
 ```
 
-#### Random Strategy
+#### Native App - Random Strategy
 ```bash
 python3 -m smartmonkey.cli.main run \
   --package com.example.app \
   --strategy random \
   --steps 50
+```
+
+#### Web - Test Mobile Website
+```bash
+# Basic web test
+./bin/smartmonkey web -d emulator-5556 -u https://m.naver.com -s 10
+
+# Test e-commerce site
+./bin/smartmonkey web -d emulator-5556 -u https://m.shopping.naver.com -s 20
+
+# Test with custom output directory
+python3 -m smartmonkey.cli.main web \
+  --device emulator-5556 \
+  --url https://m.naver.com \
+  --steps 15 \
+  --output ./web_tests/naver_test
 ```
 
 ---
