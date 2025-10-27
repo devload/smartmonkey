@@ -127,6 +127,11 @@ class SwipeAction(Action):
         self.x2 = x2
         self.y2 = y2
         self.duration = duration
+        # Add aliases for compatibility
+        self.start_x = x1
+        self.start_y = y1
+        self.end_x = x2
+        self.end_y = y2
 
     def execute(self, device: Device) -> bool:
         injector = EventInjector(device)
