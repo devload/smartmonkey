@@ -248,8 +248,8 @@ class ChromeDevice:
                     img = Image.open(output_path)
                     draw = ImageDraw.Draw(img)
 
-                    # Draw red circle at click position
-                    radius = 30
+                    # Draw red circle at click position (larger size)
+                    radius = 50  # Increased from 30 to 50
                     circle_bbox = [
                         click_x - radius,
                         click_y - radius,
@@ -257,23 +257,23 @@ class ChromeDevice:
                         click_y + radius
                     ]
 
-                    # Draw outer circle (red)
-                    draw.ellipse(circle_bbox, outline='red', width=5)
+                    # Draw outer circle (red, thicker)
+                    draw.ellipse(circle_bbox, outline='red', width=8)  # Increased from 5 to 8
 
                     # Draw inner circle (semi-transparent red fill)
-                    inner_radius = radius - 10
+                    inner_radius = radius - 15  # Adjusted proportionally
                     inner_bbox = [
                         click_x - inner_radius,
                         click_y - inner_radius,
                         click_x + inner_radius,
                         click_y + inner_radius
                     ]
-                    draw.ellipse(inner_bbox, fill=(255, 0, 0, 100), outline='red', width=3)
+                    draw.ellipse(inner_bbox, fill=(255, 0, 0, 100), outline='red', width=5)  # Increased from 3 to 5
 
-                    # Draw crosshair
-                    line_length = 15
-                    draw.line([click_x - line_length, click_y, click_x + line_length, click_y], fill='red', width=3)
-                    draw.line([click_x, click_y - line_length, click_x, click_y + line_length], fill='red', width=3)
+                    # Draw crosshair (longer and thicker)
+                    line_length = 25  # Increased from 15 to 25
+                    draw.line([click_x - line_length, click_y, click_x + line_length, click_y], fill='red', width=5)  # Increased from 3 to 5
+                    draw.line([click_x, click_y - line_length, click_x, click_y + line_length], fill='red', width=5)
 
                     # Save annotated image
                     img.save(output_path)

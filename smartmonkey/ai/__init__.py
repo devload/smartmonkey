@@ -1,5 +1,1 @@
-"""AI providers for intelligent testing"""
-
-from .workspace_provider import WorkspaceAIProvider
-
-__all__ = ['WorkspaceAIProvider']
+"""AI module for SmartMonkey using Claude Code CLI"""

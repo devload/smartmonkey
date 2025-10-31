@@ -153,6 +153,13 @@ def filter_safe_elements(elements, min_y=150):
 
 async def run_web_test(device_serial, url, steps, port, url_bar_height, output, stuck_threshold):
     """웹 네비게이션 테스트 실행"""
+
+    # output이 상대 경로면 SmartMonkey 프로젝트 기준으로 변환
+    if not os.path.isabs(output):
+        # SmartMonkey 프로젝트 루트 찾기
+        smartmonkey_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        output = os.path.join(smartmonkey_root, output.lstrip('./'))
+
     # 고유한 테스트 ID 생성 (타임스탬프 기반)
     test_id = f"web_navigation_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
@@ -174,20 +181,29 @@ async def run_web_test(device_serial, url, steps, port, url_bar_height, output, 
     device.device.adb.shell("input keyevent 3")  # KEYCODE_HOME
     await asyncio.sleep(1.0)
 
-    # Chrome 강제 종료 후 재시작
-    print("\n🔌 Step 3: Chrome 재시작...")
+    # Chrome 완전 종료 (모든 프로세스 강제 종료)
+    print("\n🔌 Step 3: Chrome 완전 종료...")
     device.device.adb.shell("am force-stop com.android.chrome")
+    await asyncio.sleep(0.5)
+    # killall로 남아있는 프로세스 정리
+    device.device.adb.shell("killall chrome 2>/dev/null || true")
     await asyncio.sleep(1.0)
+
+    # Chrome 프로세스 확인
+    chrome_count = device.device.adb.shell("ps -A | grep chrome | wc -l").strip()
+    print(f"   Chrome 프로세스 수: {chrome_count}")
+
+    print("\n🔌 Step 4: Chrome 시작...")
 
     # Chrome을 지정된 URL로 실행
     device.device.adb.shell(f'am start -n com.android.chrome/com.google.android.apps.chrome.Main -d "{url}"')
-    await asyncio.sleep(3.0)
+    await asyncio.sleep(4.0)  # Chrome 시작 대기 시간 증가
 
     # 포트 포워딩 재설정
     device.device.adb.execute(f"forward tcp:{port} localabstract:chrome_devtools_remote")
-    await asyncio.sleep(1.0)
+    await asyncio.sleep(2.0)  # 포트 포워딩 안정화 대기 시간 증가
 
-    print("\n🔌 Step 4: Chrome DevTools 연결...")
+    print("\n🔌 Step 5: Chrome DevTools 연결...")
     initial_url = url
     if not await device.connect(initial_url=initial_url):
         print("❌ Chrome 연결 실패!")
@@ -197,14 +213,14 @@ async def run_web_test(device_serial, url, steps, port, url_bar_height, output, 
 
     # 시작 페이지 캡처
     print("\n📸 시작 페이지 캡처...")
-    screenshot_dir = f"./reports/{test_id}/screenshots"
+    screenshot_dir = os.path.join(output, test_id, "screenshots")
     os.makedirs(screenshot_dir, exist_ok=True)
     initial_screenshot_path = f"{screenshot_dir}/screenshot_initial.png"
     await device.capture_screenshot(initial_screenshot_path)
     print(f"   ✅ 시작 페이지 스크린샷: {initial_screenshot_path}")
 
-    # 5. 탐색 실행
-    print(f"\n🚀 Step 5: 웹 네비게이션 시작 ({steps} actions)...")
+    # 6. 탐색 실행
+    print(f"\n🚀 Step 6: 웹 네비게이션 시작 ({steps} actions)...")
 
     result = ExplorationResult()
     visited_urls = set()
@@ -257,7 +273,7 @@ async def run_web_test(device_serial, url, steps, port, url_bar_height, output, 
                     await asyncio.sleep(1.5)
 
                     # Back 후 스크린샷 캡처
-                    screenshot_dir = f"./reports/{test_id}/screenshots"
+                    screenshot_dir = os.path.join(output, test_id, "screenshots")
                     os.makedirs(screenshot_dir, exist_ok=True)
                     screenshot_path = f"{screenshot_dir}/screenshot_{current_step:04d}.png"
 
@@ -374,7 +390,7 @@ async def run_web_test(device_serial, url, steps, port, url_bar_height, output, 
                     await asyncio.sleep(2.0)  # 스크롤 후 안정화 대기
 
                     # 스크롤 후 스크린샷 캡처 (독립 스텝으로, 스와이프 마커 표시)
-                    screenshot_dir = f"./reports/{test_id}/screenshots"
+                    screenshot_dir = os.path.join(output, test_id, "screenshots")
                     os.makedirs(screenshot_dir, exist_ok=True)
                     scroll_screenshot_path = f"{screenshot_dir}/screenshot_{current_step:04d}.png"
                     await device.capture_screenshot(
@@ -404,7 +420,7 @@ async def run_web_test(device_serial, url, steps, port, url_bar_height, output, 
             await asyncio.sleep(4.0)
 
             # **스크린샷 캡처 (클릭 후 페이지 로딩 완료 후, 클릭 위치 표시)**
-            screenshot_dir = f"./reports/{test_id}/screenshots"
+            screenshot_dir = os.path.join(output, test_id, "screenshots")
             os.makedirs(screenshot_dir, exist_ok=True)
             screenshot_path = f"{screenshot_dir}/screenshot_{current_step:04d}.png"
 
@@ -436,16 +452,16 @@ async def run_web_test(device_serial, url, steps, port, url_bar_height, output, 
     # 탐색 종료
     result.finish()
 
-    # 4. 리포트 생성
-    print("\n📊 Step 6: 리포트 생성...")
+    # 7. 리포트 생성
+    print("\n📊 Step 7: 리포트 생성...")
     generator = ReportGenerator()
 
     # 메인 reports 디렉토리에 저장 (Grafana 통합을 위해)
-    json_path = f"./reports/{test_id}/report.json"
+    json_path = os.path.join(output, test_id, "report.json")
     generator.save_json_report(result, json_path)
     print(f"✅ JSON 리포트: {json_path}")
 
-    txt_path = f"./reports/{test_id}/report.txt"
+    txt_path = os.path.join(output, test_id, "report.txt")
     generator.save_text_report(result, txt_path)
     print(f"✅ 텍스트 리포트: {txt_path}")
 

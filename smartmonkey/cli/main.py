@@ -4,6 +4,7 @@ import click
 from .commands.web import web_command
 from .commands.mobile import mobile_command
 from .commands.devices import devices_command
+from .commands.ai_command import ai_command
 from ..utils.logger import setup_logger
 
 setup_logger()
@@ -24,6 +25,9 @@ def cli():
 
       # Test a web app
       smartmonkey web -u https://m.naver.com -s 10
+
+      # AI-driven testing
+      smartmonkey ai -u https://www.coupang.com -m "상품 검색하기" -s 5
     """
     pass
 
@@ -32,6 +36,7 @@ def cli():
 cli.add_command(web_command)
 cli.add_command(mobile_command)
 cli.add_command(devices_command)
+cli.add_command(ai_command)
 
 
 if __name__ == '__main__':

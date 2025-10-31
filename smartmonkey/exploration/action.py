@@ -25,6 +25,10 @@ class Action(ABC):
 
     def __init__(self, action_type: ActionType):
         self.action_type = action_type
+        # AI metadata (optional)
+        self.ai_reason: Optional[str] = None
+        self.ai_expected_effect: Optional[str] = None
+        self.ai_confidence: Optional[float] = None
 
     @abstractmethod
     def execute(self, device: Device) -> bool:
@@ -113,6 +117,16 @@ class TapAction(Action):
                     "y2": self.element.bounds.bottom
                 }
             }
+
+        # Add AI metadata if available
+        if self.ai_reason or self.ai_expected_effect or self.ai_confidence:
+            result["ai_metadata"] = {}
+            if self.ai_reason:
+                result["ai_metadata"]["reason"] = self.ai_reason
+            if self.ai_expected_effect:
+                result["ai_metadata"]["expected_effect"] = self.ai_expected_effect
+            if self.ai_confidence is not None:
+                result["ai_metadata"]["confidence"] = self.ai_confidence
 
         return result
 
