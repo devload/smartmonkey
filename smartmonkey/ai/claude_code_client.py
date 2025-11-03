@@ -65,6 +65,10 @@ class ClaudeCodeClient:
                 del env['ANTHROPIC_API_KEY']
                 logger.debug("Removed ANTHROPIC_API_KEY from subprocess env to use subscription auth")
 
+            # PATH에 /opt/homebrew/bin 추가 (claude CLI 위치)
+            if '/opt/homebrew/bin' not in env.get('PATH', ''):
+                env['PATH'] = f"/opt/homebrew/bin:{env.get('PATH', '')}"
+
             result = subprocess.run(
                 ['claude', '-p'],  # -p for non-interactive (chat 명령어 불필요)
                 input=prompt_content,
@@ -110,6 +114,85 @@ class ClaudeCodeClient:
     ) -> str:
         """AI에게 전달할 프롬프트 생성"""
 
+        # 앱 모드 vs 웹 모드 감지
+        is_app_mode = not elements or len(elements) == 0
+
+        # 히스토리 포맷
+        history_text = "\n".join([
+            f"- Step {i+1}: {action.get('action_type', 'unknown')} at ({action.get('x', 'N/A')}, {action.get('y', 'N/A')}) - {action.get('reason', 'N/A')}"
+            for i, action in enumerate(history[-5:])  # 최근 5개만
+        ])
+
+        # 앱 모드 - 이미지만 사용
+        if is_app_mode:
+            return self._build_app_prompt(screenshot_path, mission, history_text, current_url)
+
+        # 웹 모드 - 기존 방식 (요소 리스트 포함)
+        return self._build_web_prompt(screenshot_path, elements, mission, history_text, current_url)
+
+    def _build_app_prompt(
+        self,
+        screenshot_path: str,
+        mission: str,
+        history_text: str,
+        current_url: str
+    ) -> str:
+        """앱 모드 프롬프트 (이미지만 사용)"""
+
+        prompt = f"""🎯 **미션**: {mission}
+
+📍 **현재 화면**: Android 앱
+
+📸 **스크린샷**: {screenshot_path}
+(위 경로의 스크린샷을 확인해주세요)
+
+📜 **이전 액션 히스토리** (최근 5개):
+{history_text if history_text else "(없음 - 첫 액션)"}
+
+---
+
+**당신의 역할**: 위 스크린샷을 보고, 미션을 달성하기 위해 다음으로 어떤 UI 요소를 클릭해야 할지 판단해주세요.
+
+**중요 규칙**:
+1. 스크린샷에서 시각적으로 보이는 UI 요소를 분석하세요
+2. 이미 클릭한 위치는 피하세요 (히스토리 참고)
+3. 미션과 가장 관련 있는 UI 요소를 선택하세요
+4. 상단 상태바/시스템 UI (y < 100)는 클릭하지 마세요
+5. 네비게이션 버튼, 텍스트, 이미지, 아이콘 등 클릭 가능한 모든 요소를 고려하세요
+
+**응답 형식** (반드시 이 JSON 형식으로만 응답):
+```json
+{{
+  "element_id": null,
+  "x": 540,
+  "y": 1200,
+  "reason": "왜 이 위치를 선택했는지 구체적으로 설명 (한글, 1-2문장)",
+  "expected_effect": "이 액션의 기대 효과 (예: 상품 상세 페이지로 이동, 카테고리 열림, 검색 시작 등, 한글, 1문장)",
+  "confidence": 0.9
+}}
+```
+
+**주의**:
+- element_id는 null로 설정하세요 (앱 모드에서는 사용 안 함)
+- x, y는 클릭할 화면 좌표입니다 (픽셀 단위)
+- reason은 선택 이유를 구체적으로 설명 (1-2문장)
+- expected_effect는 클릭 후 예상되는 결과를 명확하게 기술 (1문장)
+- confidence는 0.0~1.0 사이 값입니다
+
+**지금 추천해주세요!**
+"""
+        return prompt
+
+    def _build_web_prompt(
+        self,
+        screenshot_path: str,
+        elements: List[Any],
+        mission: str,
+        history_text: str,
+        current_url: str
+    ) -> str:
+        """웹 모드 프롬프트 (요소 리스트 포함)"""
+
         # 요소 정보를 읽기 쉽게 포맷
         element_info = []
         for i, elem in enumerate(elements[:30]):  # 최대 30개만
@@ -120,15 +203,9 @@ class ClaudeCodeClient:
                 "position": f"({elem.center_x}, {elem.center_y})"
             })
 
-        # 히스토리 포맷
-        history_text = "\n".join([
-            f"- Step {i+1}: {action.get('action_type', 'unknown')} at ({action.get('x', 'N/A')}, {action.get('y', 'N/A')}) - {action.get('reason', 'N/A')}"
-            for i, action in enumerate(history[-5:])  # 최근 5개만
-        ])
-
         # 워크스페이스의 CLAUDE.md에서 UI 가이드 읽기
         ui_guide = self._load_ui_guide_from_claude_md()
-        
+
         prompt = f"""🎯 **미션**: {mission}
 
 📍 **현재 URL**: {current_url}
@@ -236,40 +313,40 @@ class ClaudeCodeClient:
     def _parse_response(self, response_text: str) -> Dict[str, Any]:
         """Claude Code 응답에서 JSON 추출"""
         import re
-        
+
         logger.debug(f"Parsing response (length: {len(response_text)})")
-        
+
         # JSON 블록 찾기 (```json ... ``` 또는 {...})
         json_match = re.search(
             r'```json\s*(\{.*?\})\s*```',
             response_text,
             re.DOTALL
         )
-        
+
         if json_match:
             json_str = json_match.group(1)
             logger.debug("Found JSON in markdown code block")
         else:
-            # 순수 JSON 찾기
-            json_match = re.search(r'\{[^{}]*"element_id"[^{}]*\}', response_text, re.DOTALL)
+            # 순수 JSON 찾기 (element_id 또는 x, y 포함)
+            json_match = re.search(r'\{[^{}]*"x"[^{}]*"y"[^{}]*\}', response_text, re.DOTALL)
             if json_match:
                 json_str = json_match.group(0)
                 logger.debug("Found JSON without markdown")
             else:
                 logger.error(f"No JSON found in response:\n{response_text[:500]}")
                 raise ValueError(f"AI 응답에서 JSON을 찾을 수 없습니다:\n{response_text[:500]}...")
-        
+
         try:
             parsed = json.loads(json_str)
-            
-            # 필수 필드 검증
-            required_fields = ['element_id', 'x', 'y', 'reason']
+
+            # 필수 필드 검증 (element_id는 optional - 앱 모드에서는 null)
+            required_fields = ['x', 'y', 'reason']
             missing = [f for f in required_fields if f not in parsed]
             if missing:
                 raise ValueError(f"Missing required fields: {missing}")
-            
+
             return parsed
-            
+
         except json.JSONDecodeError as e:
             logger.error(f"JSON parsing failed: {e}\nJSON string: {json_str}")
             raise ValueError(f"JSON 파싱 실패: {e}\n원본: {json_str}")
