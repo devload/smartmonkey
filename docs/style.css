@@ -83,16 +83,22 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 1.25rem;
     background: var(--text-dark);
     color: white;
+    border: 2px solid var(--text-dark);
     border-radius: 0.5rem;
-    transition: transform 0.2s, background 0.3s;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(31, 41, 55, 0.15);
+    transition: all 0.3s ease;
 }
 
 .btn-github:hover {
     background: var(--primary-color);
+    border-color: var(--primary-color);
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    color: white;
 }
 
 /* ===== Hero Section ===== */
