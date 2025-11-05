@@ -1,0 +1,28 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#8b5cf6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+
+  <!-- Monkey Emoji (Large) -->
+  <text x="600" y="280" font-size="200" text-anchor="middle">🐵</text>
+
+  <!-- Brain Emoji (AI indicator) -->
+  <text x="750" y="200" font-size="80" text-anchor="middle">🧠</text>
+
+  <!-- Title -->
+  <text x="600" y="400" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="white" text-anchor="middle">SmartMonkey</text>
+
+  <!-- Subtitle -->
+  <text x="600" y="470" font-family="Arial, sans-serif" font-size="36" fill="white" text-anchor="middle" opacity="0.95">AI-Driven Android App Testing</text>
+
+  <!-- Features -->
+  <text x="600" y="540" font-family="Arial, sans-serif" font-size="28" fill="white" text-anchor="middle" opacity="0.9">🤖 AI Testing  📱 Mobile Apps  🌐 Web Apps</text>
+</svg>
