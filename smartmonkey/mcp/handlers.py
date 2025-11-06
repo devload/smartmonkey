@@ -68,7 +68,7 @@ async def handle_list_devices(arguments: Dict[str, Any]) -> List[Dict[str, str]]
     """List all connected Android devices"""
     try:
         adb = ADBManager()
-        devices = adb.list_devices()
+        devices = adb.get_devices()
 
         if not devices:
             return [{
