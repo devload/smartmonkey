@@ -4,8 +4,9 @@
 
 **Intelligent Android App Testing Tool with AI-Driven Testing & Grafana Dashboards**
 
-[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/yourusername/smartmonkey/releases/tag/v0.2.0)
-[![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/downloads/)
+[![Version](https://img.shields.io/badge/version-0.2.1-blue.svg)](https://github.com/devload/smartmonkey/releases/tag/v0.2.1)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![MCP](https://img.shields.io/badge/MCP-Supported-purple.svg)](https://modelcontextprotocol.io)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Android-brightgreen.svg)](https://www.android.com/)
 [![AI](https://img.shields.io/badge/AI-Claude_Code-purple.svg)](https://claude.ai/)
@@ -77,12 +78,13 @@ SmartMonkey is an **intelligent Android app testing tool** that goes beyond trad
 - **JSON & Text Reports**: Both machine and human-readable formats
 - **Dual Mode**: Native Android apps + Web apps testing
 
-### 🔌 MCP Integration (NEW! v0.2.0)
+### 🔌 MCP Integration (NEW! v0.2.1)
 - **Claude Desktop Integration**: Control SmartMonkey directly from Claude
 - **Natural Language Testing**: "Test Coupang app with mission: browse products"
 - **4 MCP Tools**: list_devices, run_ai_test, run_mobile_test, run_web_test
 - **Background Execution**: Tests run asynchronously with test_id tracking
 - **Easy Setup**: One config file to enable MCP in Claude Desktop
+- **Python 3.10+ Required**: Automatic device detection and test management
 
 ---
 
@@ -102,9 +104,10 @@ SmartMonkey is an **intelligent Android app testing tool** that goes beyond trad
 
 ### Prerequisites
 
-- Python 3.9 or higher
+- **Python 3.10 or higher** (3.12+ recommended for MCP support)
 - Android SDK with ADB installed
 - At least one Android device or emulator connected
+- (Optional) Claude Desktop for MCP integration
 
 ### Install SmartMonkey
 
@@ -210,7 +213,23 @@ done
 
 ## 🔌 MCP Integration Setup
 
-SmartMonkey now supports **Model Context Protocol (MCP)** for Claude Desktop integration!
+SmartMonkey now supports **Model Context Protocol (MCP)** for Claude Desktop integration! Control testing with natural language directly from Claude.
+
+### Prerequisites
+
+⚠️ **Python 3.10+ required** for MCP support. If you have Python 3.9 or older:
+
+```bash
+# Install Python 3.12 (recommended)
+brew install python@3.12
+
+# Create virtual environment
+python3.12 -m venv ~/.venv/smartmonkey-mcp
+source ~/.venv/smartmonkey-mcp/bin/activate
+
+# Install SmartMonkey with MCP
+pip install -e .
+```
 
 ### Quick Setup
 
@@ -226,35 +245,76 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 {
   "mcpServers": {
     "smartmonkey": {
-      "command": "python3",
+      "command": "python3.12",
       "args": ["-m", "smartmonkey.mcp.server"],
       "env": {
-        "PYTHONPATH": "/path/to/smartmonkey"
+        "PYTHONPATH": "/Users/your-username/smartmonkey"
       }
     }
   }
 }
 ```
 
+⚠️ **Important:**
+- Replace `python3.12` with your Python 3.10+ executable path
+- Update `PYTHONPATH` to your actual SmartMonkey directory
+
 **3. Restart Claude Desktop**
 
-**4. Start testing with natural language!**
+```bash
+# Completely quit Claude
+killall Claude
+
+# Restart Claude Desktop
+open -a Claude
 ```
+
+**4. Start testing with natural language!**
+
+```
+User: "What SmartMonkey tools do you have?"
+Claude: [Lists 4 available tools]
+
 User: "List my Android devices"
-Claude: [Shows connected devices]
+Claude: [Shows VIVO V2041, Samsung SM-A356N, etc.]
 
 User: "Test Coupang app, mission: browse products and add to cart, 10 steps"
-Claude: [Runs AI test and returns test_id]
+Claude: [Runs AI test and returns test_id: ai_test_20251106_123456_abc123]
+
+User: "Run traditional test on com.android.settings for 20 steps"
+Claude: [Executes mobile test with weighted strategy]
 ```
 
 ### Available MCP Tools
 
-- **list_devices** - List connected Android devices
-- **run_ai_test** - AI-driven testing with mission
-- **run_mobile_test** - Traditional mobile app testing
-- **run_web_test** - Web app testing
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| **list_devices** | List connected Android devices | None |
+| **run_ai_test** | AI-driven testing with mission | `mission` (required), `package` or `url`, `device`, `steps` |
+| **run_mobile_test** | Traditional mobile app testing | `package` (required), `device`, `steps` |
+| **run_web_test** | Web app testing with Chrome DevTools | `url` (required), `device`, `steps` |
 
-📚 **Full MCP documentation:** [docs/MCP_SETUP.md](docs/MCP_SETUP.md)
+### Test Results
+
+All tests run in background and return a `test_id`:
+
+```json
+{
+  "test_id": "ai_test_20251106_123456_abc123",
+  "status": "started",
+  "output_dir": "./reports/ai_test_20251106_123456_abc123"
+}
+```
+
+Find your results in `./reports/<test_id>/`:
+- `report.json` - Structured test data
+- `report.txt` - Human-readable summary
+- `screenshots/` - All captured screenshots
+- `claude.md` - AI reasoning (AI tests only)
+
+📚 **Complete MCP documentation:**
+- [MCP Setup Guide](docs/MCP_SETUP.md) - Detailed configuration
+- [MCP Testing Guide](docs/MCP_TESTING.md) - Testing and troubleshooting
 
 ---
 
@@ -735,6 +795,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 ## 🗺️ Roadmap
+
+### v0.2.1 (✅ Completed - 2025-11-06)
+- ✅ **MCP (Model Context Protocol) integration** for Claude Desktop
+- ✅ Natural language testing interface
+- ✅ 4 MCP tools: list_devices, run_ai_test, run_mobile_test, run_web_test
+- ✅ Background test execution with test_id tracking
+- ✅ Python 3.10+ support (3.12+ recommended)
+- ✅ Comprehensive MCP setup and testing documentation
 
 ### v0.2.0 (✅ Completed - 2025-11-03)
 - ✅ AI-driven testing with Claude Code integration
