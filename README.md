@@ -77,6 +77,13 @@ SmartMonkey is an **intelligent Android app testing tool** that goes beyond trad
 - **JSON & Text Reports**: Both machine and human-readable formats
 - **Dual Mode**: Native Android apps + Web apps testing
 
+### 🔌 MCP Integration (NEW! v0.2.0)
+- **Claude Desktop Integration**: Control SmartMonkey directly from Claude
+- **Natural Language Testing**: "Test Coupang app with mission: browse products"
+- **4 MCP Tools**: list_devices, run_ai_test, run_mobile_test, run_web_test
+- **Background Execution**: Tests run asynchronously with test_id tracking
+- **Easy Setup**: One config file to enable MCP in Claude Desktop
+
 ---
 
 ## 📸 Screenshots
@@ -198,6 +205,56 @@ for i in {1..5}; do
   sleep 2
 done
 ```
+
+---
+
+## 🔌 MCP Integration Setup
+
+SmartMonkey now supports **Model Context Protocol (MCP)** for Claude Desktop integration!
+
+### Quick Setup
+
+**1. Install MCP dependency:**
+```bash
+pip install 'mcp>=0.9.0'
+```
+
+**2. Configure Claude Desktop:**
+
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "smartmonkey": {
+      "command": "python3",
+      "args": ["-m", "smartmonkey.mcp.server"],
+      "env": {
+        "PYTHONPATH": "/path/to/smartmonkey"
+      }
+    }
+  }
+}
+```
+
+**3. Restart Claude Desktop**
+
+**4. Start testing with natural language!**
+```
+User: "List my Android devices"
+Claude: [Shows connected devices]
+
+User: "Test Coupang app, mission: browse products and add to cart, 10 steps"
+Claude: [Runs AI test and returns test_id]
+```
+
+### Available MCP Tools
+
+- **list_devices** - List connected Android devices
+- **run_ai_test** - AI-driven testing with mission
+- **run_mobile_test** - Traditional mobile app testing
+- **run_web_test** - Web app testing
+
+📚 **Full MCP documentation:** [docs/MCP_SETUP.md](docs/MCP_SETUP.md)
 
 ---
 
