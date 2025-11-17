@@ -104,5 +104,20 @@ class Device:
         """Get manufacturer"""
         return self._info.get('manufacturer', 'Unknown') if self._info else 'Unknown'
 
+    async def capture_screenshot(self, output_path: str, **kwargs) -> bool:
+        """
+        Capture screenshot (async wrapper for compatibility with ChromeDevice)
+
+        Args:
+            output_path: Path to save screenshot
+            **kwargs: Additional arguments (ignored for Android devices)
+
+        Returns:
+            True if successful
+        """
+        from .screen_capture import ScreenCapture
+        screen_capture = ScreenCapture(self)
+        return screen_capture.take_screenshot(output_path)
+
     def __repr__(self) -> str:
         return f"Device({self.serial}, {self.model})"

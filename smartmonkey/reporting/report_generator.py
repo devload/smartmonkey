@@ -168,8 +168,9 @@ class ReportGenerator:
                     {
                         "step": i,
                         "timestamp": (result.start_time.timestamp() + i * state_duration_per_step),
-                        "type": action.action_type.value,
-                        "repr": repr(action)
+                        "datetime": datetime.fromtimestamp(result.start_time.timestamp() + i * state_duration_per_step).isoformat(),
+                        **action.to_dict(),  # Spread operator to merge detailed action data
+                        "repr": repr(action)  # Keep repr for backward compatibility
                     }
                     for i, action in enumerate(result.actions)
                 ]
@@ -178,9 +179,121 @@ class ReportGenerator:
             with open(output_path, 'w') as f:
                 json.dump(report_data, f, indent=2)
 
-            logger.info(f"JSON report saved to {output_path}")
+            # Verify file was actually written
+            if not os.path.exists(output_path):
+                logger.error(f"CRITICAL: File write appeared successful but file does not exist: {output_path}")
+                return False
+
+            file_size = os.path.getsize(output_path)
+            if file_size == 0:
+                logger.error(f"CRITICAL: File was written but is empty: {output_path}")
+                return False
+
+            logger.info(f"✅ JSON report saved to {output_path} ({file_size} bytes)")
+
+            # Auto-update index.json for Grafana
+            try:
+                self.update_index_json(output_path, result)
+            except Exception as idx_error:
+                logger.error(f"Failed to update index.json (report still saved): {idx_error}")
+                import traceback
+                traceback.print_exc()
+
             return True
 
         except Exception as e:
             logger.error(f"Failed to save JSON report: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+
+    def update_index_json(self, report_path: str, result: ExplorationResult) -> bool:
+        """
+        Update index.json with new test run entry for Grafana dashboard
+
+        Args:
+            report_path: Path to the report.json file
+            result: Exploration result
+
+        Returns:
+            True if successful
+        """
+        try:
+            import re
+
+            # Extract report folder name from path
+            # e.g., ./reports/ai_multi_test_run001/report.json -> ai_multi_test_run001
+            match = re.search(r'reports/([^/]+)/', report_path)
+            if not match:
+                logger.warning(f"Could not extract report name from path: {report_path}")
+                return False
+
+            report_name = match.group(1)
+
+            # Determine index.json path (reports/index.json)
+            reports_dir = os.path.dirname(os.path.dirname(report_path))
+            index_path = os.path.join(reports_dir, "index.json")
+
+            # Load existing index or create new one
+            if os.path.exists(index_path):
+                with open(index_path, 'r') as f:
+                    index_data = json.load(f)
+            else:
+                index_data = {
+                    "total_tests": 0,
+                    "last_updated": None,
+                    "test_runs": []
+                }
+
+            # Check if this test run already exists
+            existing_index = None
+            for i, test_run in enumerate(index_data["test_runs"]):
+                if test_run.get("id") == report_name:
+                    existing_index = i
+                    break
+
+            # Get device info (package name from result if available)
+            package_name = getattr(result, 'package', 'unknown')
+            device_name = getattr(result, 'device_name', 'Unknown Device')
+
+            # Create new entry
+            new_entry = {
+                "id": report_name,
+                "name": f"SmartMonkey Test - {report_name}",
+                "package": package_name,
+                "device": device_name,
+                "start_time": result.start_time.isoformat(),
+                "duration_seconds": result.duration,
+                "total_steps": result.total_events,
+                "unique_states": result.unique_states,
+                "crash_detected": result.crash_detected,
+                "status": "failed" if result.crash_detected else "passed",
+                "report_url": f"{self.base_url}/{report_name}/report.json",
+                "thumbnail": f"{self.base_url}/{report_name}/screenshots/screenshot_0000.png" if result.states else None
+            }
+
+            # Update or append
+            if existing_index is not None:
+                index_data["test_runs"][existing_index] = new_entry
+                logger.info(f"Updated existing entry in index.json: {report_name}")
+            else:
+                index_data["test_runs"].append(new_entry)
+                index_data["total_tests"] += 1
+                logger.info(f"Added new entry to index.json: {report_name}")
+
+            # Update timestamp
+            index_data["last_updated"] = datetime.now().isoformat()
+
+            # Save updated index
+            ensure_dir(reports_dir)
+            with open(index_path, 'w') as f:
+                json.dump(index_data, f, indent=2)
+
+            logger.info(f"✅ index.json updated: {index_path}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to update index.json: {e}")
+            import traceback
+            traceback.print_exc()
             return False

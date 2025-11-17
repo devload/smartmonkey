@@ -25,6 +25,10 @@ class Action(ABC):
 
     def __init__(self, action_type: ActionType):
         self.action_type = action_type
+        # AI metadata (optional)
+        self.ai_reason: Optional[str] = None
+        self.ai_expected_effect: Optional[str] = None
+        self.ai_confidence: Optional[float] = None
 
     @abstractmethod
     def execute(self, device: Device) -> bool:
@@ -41,6 +45,16 @@ class Action(ABC):
 
     @abstractmethod
     def __repr__(self) -> str:
+        pass
+
+    @abstractmethod
+    def to_dict(self) -> dict:
+        """
+        Convert action to dictionary for JSON serialization
+
+        Returns:
+            Dictionary representation of action
+        """
         pass
 
 
@@ -77,6 +91,45 @@ class TapAction(Action):
             return f"TapAction(element={self.element.class_name}, text='{self.element.text}')"
         return f"TapAction(x={self.x}, y={self.y})"
 
+    def to_dict(self) -> dict:
+        """Convert to dictionary with detailed info"""
+        result = {
+            "type": self.action_type.value,
+            "coordinates": {"x": self.x, "y": self.y}
+        }
+
+        if self.element:
+            result["element"] = {
+                "class": self.element.class_name,
+                "text": self.element.text,
+                "resource_id": self.element.resource_id,
+                "content_desc": self.element.content_desc,
+                "bounds": {
+                    "left": self.element.bounds.left,
+                    "top": self.element.bounds.top,
+                    "right": self.element.bounds.right,
+                    "bottom": self.element.bounds.bottom
+                },
+                "rect": {
+                    "x1": self.element.bounds.left,
+                    "y1": self.element.bounds.top,
+                    "x2": self.element.bounds.right,
+                    "y2": self.element.bounds.bottom
+                }
+            }
+
+        # Add AI metadata if available
+        if self.ai_reason or self.ai_expected_effect or self.ai_confidence:
+            result["ai_metadata"] = {}
+            if self.ai_reason:
+                result["ai_metadata"]["reason"] = self.ai_reason
+            if self.ai_expected_effect:
+                result["ai_metadata"]["expected_effect"] = self.ai_expected_effect
+            if self.ai_confidence is not None:
+                result["ai_metadata"]["confidence"] = self.ai_confidence
+
+        return result
+
 
 class SwipeAction(Action):
     """Swipe action"""
@@ -88,6 +141,11 @@ class SwipeAction(Action):
         self.x2 = x2
         self.y2 = y2
         self.duration = duration
+        # Add aliases for compatibility
+        self.start_x = x1
+        self.start_y = y1
+        self.end_x = x2
+        self.end_y = y2
 
     def execute(self, device: Device) -> bool:
         injector = EventInjector(device)
@@ -95,6 +153,15 @@ class SwipeAction(Action):
 
     def __repr__(self) -> str:
         return f"SwipeAction(from=({self.x1},{self.y1}), to=({self.x2},{self.y2}))"
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary with detailed info"""
+        return {
+            "type": self.action_type.value,
+            "from": {"x": self.x1, "y": self.y1},
+            "to": {"x": self.x2, "y": self.y2},
+            "duration_ms": self.duration
+        }
 
 
 class BackAction(Action):
@@ -110,6 +177,13 @@ class BackAction(Action):
     def __repr__(self) -> str:
         return "BackAction()"
 
+    def to_dict(self) -> dict:
+        """Convert to dictionary with detailed info"""
+        return {
+            "type": self.action_type.value,
+            "description": "Press back button"
+        }
+
 
 class HomeAction(Action):
     """Home button action"""
@@ -123,6 +197,13 @@ class HomeAction(Action):
 
     def __repr__(self) -> str:
         return "HomeAction()"
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary with detailed info"""
+        return {
+            "type": self.action_type.value,
+            "description": "Press home button"
+        }
 
 
 class TextInputAction(Action):
@@ -138,3 +219,11 @@ class TextInputAction(Action):
 
     def __repr__(self) -> str:
         return f"TextInputAction(text='{self.text}')"
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary with detailed info"""
+        return {
+            "type": self.action_type.value,
+            "text": self.text,
+            "description": f"Input text: '{self.text}'"
+        }

@@ -2,12 +2,14 @@
 
 # SmartMonkey 🐵🧠
 
-**Intelligent Android App Testing Tool with Grafana Dashboards**
+**Intelligent Android App Testing Tool with AI-Driven Testing & Grafana Dashboards**
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/yourusername/smartmonkey/releases/tag/v0.1.0)
-[![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/downloads/)
+[![Version](https://img.shields.io/badge/version-0.2.1-blue.svg)](https://github.com/devload/smartmonkey/releases/tag/v0.2.1)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![MCP](https://img.shields.io/badge/MCP-Supported-purple.svg)](https://modelcontextprotocol.io)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Android-brightgreen.svg)](https://www.android.com/)
+[![AI](https://img.shields.io/badge/AI-Claude_Code-purple.svg)](https://claude.ai/)
 
 [Features](#-features) • [Installation](#-installation) • [Quick Start](#-quick-start) • [Grafana Setup](#-grafana-dashboard-setup) • [Documentation](#-documentation)
 
@@ -17,24 +19,47 @@
 
 ## 🎯 What is SmartMonkey?
 
-SmartMonkey is an **intelligent Android app testing tool** that goes beyond traditional random monkey testing. While MonkeyRunner clicks randomly, SmartMonkey uses a **weighted exploration strategy** to intelligently test your Android applications with beautiful **Grafana dashboards** for visualization.
+SmartMonkey is an **intelligent Android app testing tool** that goes beyond traditional random monkey testing. It supports **three testing modes**: **Native Mobile Apps**, **Web Apps**, and **AI-Driven Testing** powered by Claude Code. SmartMonkey intelligently tests your applications with beautiful **Grafana dashboards** for visualization.
 
 ### 🤖 How It Works
 
+**Traditional Testing:**
 - **📊 Weighted Strategy**: Prioritizes unvisited UI elements (10x weight) to maximize code coverage
 - **🎯 Smart Targeting**: Bonus scoring for buttons (1.5x) and submit actions (2x)
 - **🔍 State Detection**: MD5 hashing to avoid duplicate states
 - **💥 Crash Detection**: Automatically detects when app exits or moves to background
 - **📸 Visual Documentation**: Screenshots at every step with Grafana gallery
 
+**AI-Driven Testing (NEW! 🚀):**
+- **🧠 Vision-Based Analysis**: Claude Code analyzes screenshots to understand UI context
+- **🎯 Mission-Oriented**: AI follows specific missions like "Browse products and add to cart"
+- **🤝 Smart Decision Making**: Judges popup/ad relevance based on mission context
+- **🔧 Auto-Correction**: Automatic coordinate correction for system permission dialogs
+- **📱 Universal Support**: Works with both native apps and web apps
+
 ---
 
 ## ✨ Features
 
-### 🎯 Intelligent Exploration
+### 🤖 AI-Driven Testing (NEW! v0.2.0)
+- **Claude Code Integration**: Vision-based screen analysis using Claude Code CLI
+- **Mission-Oriented Testing**: Define testing goals like "Search and add products to cart"
+- **Intelligent Popup Handling**: AI judges if popups/ads are relevant to mission
+- **Hybrid Precision**: Combines AI vision with UI hierarchy for accurate coordinates
+- **Context-Aware Decisions**: AI reads screen content and makes smart navigation choices
+- **Dual Mode Support**: Works with native Android apps AND web applications
+
+### 📱 Native Mobile App Testing
 - **Weighted Strategy**: Unvisited elements get 10x priority
 - **Context-Aware**: Recognizes buttons, text fields, and interactive elements
 - **State Hashing**: Avoids testing duplicate UI states
+- **ADB Integration**: Direct device communication via Android Debug Bridge
+
+### 🌐 Web App Testing
+- **Chrome DevTools Protocol**: Direct DOM inspection and manipulation
+- **Visual Markers**: Click positions (red crosshair) and swipe gestures
+- **Smart Scrolling**: Automatic scroll when elements are off-screen
+- **Overlay Detection**: Detects and closes modals/menus automatically
 
 ### 💥 Crash Detection
 - **Real-time Monitoring**: Detects when app stops running or moves to background
@@ -43,7 +68,7 @@ SmartMonkey is an **intelligent Android app testing tool** that goes beyond trad
 
 ### 📊 Grafana Dashboard Integration
 - **Beautiful Visualizations**: Interactive test result dashboards
-- **Screenshot Gallery**: Scrollable gallery of all test screenshots  
+- **Screenshot Gallery**: Scrollable gallery of all test screenshots
 - **Test History**: Track multiple test runs over time
 - **Drill-Down Navigation**: Click test ID to view detailed results
 
@@ -51,6 +76,15 @@ SmartMonkey is an **intelligent Android app testing tool** that goes beyond trad
 - **Full CLI Parameters**: Device, package, steps, strategy all configurable
 - **Multi-device Support**: Works with physical devices and emulators
 - **JSON & Text Reports**: Both machine and human-readable formats
+- **Dual Mode**: Native Android apps + Web apps testing
+
+### 🔌 MCP Integration (NEW! v0.2.1)
+- **Claude Desktop Integration**: Control SmartMonkey directly from Claude
+- **Natural Language Testing**: "Test Coupang app with mission: browse products"
+- **4 MCP Tools**: list_devices, run_ai_test, run_mobile_test, run_web_test
+- **Background Execution**: Tests run asynchronously with test_id tracking
+- **Easy Setup**: One config file to enable MCP in Claude Desktop
+- **Python 3.10+ Required**: Automatic device detection and test management
 
 ---
 
@@ -70,9 +104,10 @@ SmartMonkey is an **intelligent Android app testing tool** that goes beyond trad
 
 ### Prerequisites
 
-- Python 3.9 or higher
+- **Python 3.10 or higher** (3.12+ recommended for MCP support)
 - Android SDK with ADB installed
 - At least one Android device or emulator connected
+- (Optional) Claude Desktop for MCP integration
 
 ### Install SmartMonkey
 
@@ -98,7 +133,7 @@ python3 -m smartmonkey.cli.main --version
 ### 1. List Connected Devices
 
 ```bash
-python3 -m smartmonkey.cli.main list-devices
+python3 -m smartmonkey.cli.main devices
 ```
 
 **Output:**
@@ -108,25 +143,67 @@ Available devices:
   - RFCX919P8ZF (Samsung SM-A356N)
 ```
 
-### 2. Run a Basic Test
+### 2. Run AI-Driven Testing (NEW! 🚀)
+
+**Test a Native Android App:**
+```bash
+python3 -m smartmonkey.cli.main ai \
+  --device emulator-5556 \
+  --package com.coupang.mobile \
+  --mission "쿠팡에서 다양한 상품을 둘러보기" \
+  --steps 10
+```
+
+**Test a Mobile Website:**
+```bash
+python3 -m smartmonkey.cli.main ai \
+  --device emulator-5556 \
+  --url https://www.coupang.com \
+  --mission "상품 검색하고 장바구니 담기" \
+  --steps 10
+```
+
+**How AI Testing Works:**
+- 🧠 AI analyzes screenshots to understand the current screen
+- 🎯 Makes decisions based on the mission you provide
+- 🤝 Smart popup handling: Closes irrelevant ads, explores relevant content
+- 🔧 Auto-corrects coordinates for system permission dialogs
+- 📝 Generates detailed action history with reasoning
+
+### 3. Run a Native App Test (Traditional)
 
 ```bash
-python3 -m smartmonkey.cli.main run \
+python3 -m smartmonkey.cli.main mobile \
   --device emulator-5556 \
   --package com.android.settings \
   --steps 20
 ```
 
-### 3. Run Multiple Tests
+### 4. Run a Web App Test (Traditional)
+
+```bash
+# Test a mobile website
+python3 -m smartmonkey.cli.main web \
+  --device emulator-5556 \
+  --url https://m.naver.com \
+  --steps 10
+```
+
+**Features:**
+- ✅ Captures starting page before any actions
+- ✅ Visual markers on screenshots (clicks & swipes)
+- ✅ Smart scrolling when elements are off-screen
+- ✅ Detects and closes overlays/modals automatically
+
+### 5. Run Multiple Tests
 
 ```bash
 # Run 5 tests with 20 steps each
 for i in {1..5}; do
-  python3 -m smartmonkey.cli.main run \
+  python3 -m smartmonkey.cli.main mobile \
     --device emulator-5556 \
     --package io.whatap.session.sample \
     --steps 20 \
-    --strategy weighted \
     --output ./reports/test_run_$(printf "%03d" $i)
   sleep 2
 done
@@ -134,58 +211,254 @@ done
 
 ---
 
-## 📖 CLI Parameters
+## 🔌 MCP Integration Setup
 
-### Full Command Syntax
+SmartMonkey now supports **Model Context Protocol (MCP)** for Claude Desktop integration! Control testing with natural language directly from Claude.
+
+### Prerequisites
+
+⚠️ **Python 3.10+ required** for MCP support. If you have Python 3.9 or older:
 
 ```bash
-python3 -m smartmonkey.cli.main run [OPTIONS]
+# Install Python 3.12 (recommended)
+brew install python@3.12
+
+# Create virtual environment
+python3.12 -m venv ~/.venv/smartmonkey-mcp
+source ~/.venv/smartmonkey-mcp/bin/activate
+
+# Install SmartMonkey with MCP
+pip install -e .
 ```
 
-### Available Options
+### Quick Setup
+
+**1. Install MCP dependency:**
+```bash
+pip install 'mcp>=0.9.0'
+```
+
+**2. Configure Claude Desktop:**
+
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "smartmonkey": {
+      "command": "python3.12",
+      "args": ["-m", "smartmonkey.mcp.server"],
+      "env": {
+        "PYTHONPATH": "/Users/your-username/smartmonkey"
+      }
+    }
+  }
+}
+```
+
+⚠️ **Important:**
+- Replace `python3.12` with your Python 3.10+ executable path
+- Update `PYTHONPATH` to your actual SmartMonkey directory
+
+**3. Restart Claude Desktop**
+
+```bash
+# Completely quit Claude
+killall Claude
+
+# Restart Claude Desktop
+open -a Claude
+```
+
+**4. Start testing with natural language!**
+
+```
+User: "What SmartMonkey tools do you have?"
+Claude: [Lists 4 available tools]
+
+User: "List my Android devices"
+Claude: [Shows VIVO V2041, Samsung SM-A356N, etc.]
+
+User: "Test Coupang app, mission: browse products and add to cart, 10 steps"
+Claude: [Runs AI test and returns test_id: ai_test_20251106_123456_abc123]
+
+User: "Run traditional test on com.android.settings for 20 steps"
+Claude: [Executes mobile test with weighted strategy]
+```
+
+### Available MCP Tools
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| **list_devices** | List connected Android devices | None |
+| **run_ai_test** | AI-driven testing with mission | `mission` (required), `package` or `url`, `device`, `steps` |
+| **run_mobile_test** | Traditional mobile app testing | `package` (required), `device`, `steps` |
+| **run_web_test** | Web app testing with Chrome DevTools | `url` (required), `device`, `steps` |
+
+### Test Results
+
+All tests run in background and return a `test_id`:
+
+```json
+{
+  "test_id": "ai_test_20251106_123456_abc123",
+  "status": "started",
+  "output_dir": "./reports/ai_test_20251106_123456_abc123"
+}
+```
+
+Find your results in `./reports/<test_id>/`:
+- `report.json` - Structured test data
+- `report.txt` - Human-readable summary
+- `screenshots/` - All captured screenshots
+- `claude.md` - AI reasoning (AI tests only)
+
+📚 **Complete MCP documentation:**
+- [MCP Setup Guide](docs/MCP_SETUP.md) - Detailed configuration
+- [MCP Testing Guide](docs/MCP_TESTING.md) - Testing and troubleshooting
+
+---
+
+## 📖 CLI Parameters
+
+### AI-Driven Testing (NEW! 🚀)
+
+**Full Command Syntax:**
+```bash
+python3 -m smartmonkey.cli.main ai [OPTIONS]
+```
+
+**Available Options:**
+
+| Parameter | Short | Description | Default | Required |
+|-----------|-------|-------------|---------|----------|
+| `--device` | `-d` | Device serial number | `emulator-5554` | No |
+| `--package` | `-pkg` | App package name (for app testing) | - | One of `--package` or `--url` required |
+| `--url` | `-u` | Starting URL (for web testing) | - | One of `--package` or `--url` required |
+| `--mission` | `-m` | Mission to accomplish | - | **Yes** |
+| `--steps` | `-s` | Maximum number of steps | 5 | No |
+| `--port` | `-p` | Chrome DevTools port (web mode only) | 9222 | No |
+| `--output` | `-o` | Output directory path | `./reports` | No |
+
+**Mission Examples:**
+- `"쿠팡에서 다양한 상품을 둘러보기"`
+- `"상품 검색하고 장바구니 담기"`
+- `"Browse products and add to cart"`
+- `"네이버에서 뉴스 읽기"`
+
+**AI Testing Features:**
+- 🧠 **Vision-Based**: AI analyzes screenshots to understand UI
+- 🎯 **Mission-Oriented**: Follows your specific testing goals
+- 🤝 **Smart Decisions**: Judges popup relevance to mission
+- 🔧 **Auto-Correction**: Fixes permission dialog coordinates
+- 📝 **Detailed Logging**: Explains reasoning for each action
+
+### Native Mobile App Testing
+
+**Full Command Syntax:**
+```bash
+python3 -m smartmonkey.cli.main mobile [OPTIONS]
+```
+
+**Available Options:**
 
 | Parameter | Short | Description | Default | Required |
 |-----------|-------|-------------|---------|----------|
 | `--device` | `-d` | Device serial number | Auto-detect | No* |
 | `--package` | `-p` | App package name | - | **Yes** |
-| `--steps` | `-n` | Maximum number of steps | 50 | No |
-| `--strategy` | `-s` | Exploration strategy (`random` or `weighted`) | `weighted` | No |
+| `--steps` | `-s` | Maximum number of steps | 50 | No |
 | `--output` | `-o` | Output directory path | `./reports/<timestamp>` | No |
-| `--screenshots` | - | Save screenshots | `yes` | No |
-| `--no-screenshots` | - | Disable screenshots | - | No |
 
 \* Required if multiple devices are connected
 
-### Examples
+### Web App Testing
 
-#### Basic Test (Auto-detect device)
+**Full Command Syntax:**
 ```bash
-python3 -m smartmonkey.cli.main run --package com.example.app
+python3 -m smartmonkey.cli.main web [OPTIONS]
 ```
 
-#### Specify All Parameters
+**Available Options:**
+
+| Parameter | Short | Description | Default | Required |
+|-----------|-------|-------------|---------|----------|
+| `--device` | `-d` | Device serial number | Auto-detect | No* |
+| `--url` | `-u` | Starting URL to test | - | **Yes** |
+| `--steps` | `-s` | Maximum number of actions | 10 | No |
+| `--output` | `-o` | Output directory path | `./reports` | No |
+
+\* Required if multiple devices are connected
+
+**Web Testing Features:**
+- 📸 **Initial Screenshot**: Captures starting page before any actions
+- 🎯 **Visual Markers**: Red crosshair for clicks, green→blue arrow for swipes
+- 📜 **Smart Scrolling**: Auto-scrolls when elements are off-screen
+- 🚪 **Overlay Detection**: Detects and closes modals/menus automatically
+- 📊 **Independent Steps**: Swipes count as separate steps with their own screenshots
+
+### Examples
+
+#### AI - Test Native Android App
 ```bash
-python3 -m smartmonkey.cli.main run \
+# E-commerce app testing
+python3 -m smartmonkey.cli.main ai \
+  -d emulator-5556 \
+  -pkg com.coupang.mobile \
+  -m "쿠팡에서 다양한 상품을 둘러보기" \
+  -s 10
+
+# Settings exploration
+python3 -m smartmonkey.cli.main ai \
+  -d emulator-5556 \
+  -pkg com.android.settings \
+  -m "앱 설정 둘러보기" \
+  -s 5
+```
+
+#### AI - Test Mobile Website
+```bash
+# E-commerce site
+python3 -m smartmonkey.cli.main ai \
+  -d emulator-5556 \
+  -u https://www.coupang.com \
+  -m "상품 검색하고 장바구니 담기" \
+  -s 10
+
+# News site
+python3 -m smartmonkey.cli.main ai \
+  -d emulator-5556 \
+  -u https://m.naver.com \
+  -m "네이버에서 뉴스 읽기" \
+  -s 5
+```
+
+#### Native App - Basic Test (Auto-detect device)
+```bash
+python3 -m smartmonkey.cli.main mobile -p com.example.app
+```
+
+#### Native App - Specify All Parameters
+```bash
+python3 -m smartmonkey.cli.main mobile \
   --device emulator-5556 \
   --package com.example.app \
   --steps 100 \
-  --strategy weighted \
   --output ./my_test_results
 ```
 
-#### Disable Screenshots
+#### Web - Test Mobile Website
 ```bash
-python3 -m smartmonkey.cli.main run \
-  --package com.example.app \
-  --no-screenshots
-```
+# Basic web test
+python3 -m smartmonkey.cli.main web -d emulator-5556 -u https://m.naver.com -s 10
 
-#### Random Strategy
-```bash
-python3 -m smartmonkey.cli.main run \
-  --package com.example.app \
-  --strategy random \
-  --steps 50
+# Test e-commerce site
+python3 -m smartmonkey.cli.main web -d emulator-5556 -u https://m.shopping.naver.com -s 20
+
+# Test with custom output directory
+python3 -m smartmonkey.cli.main web \
+  --device emulator-5556 \
+  --url https://m.naver.com \
+  --steps 15 \
+  --output ./web_tests/naver_test
 ```
 
 ---
@@ -264,7 +537,16 @@ Keep this running in a separate terminal.
 smartmonkey/
 ├── smartmonkey/              # Main package
 │   ├── cli/                  # CLI interface
-│   │   └── main.py          # Command-line entry point
+│   │   ├── main.py          # Command-line entry point
+│   │   └── commands/        # CLI command modules
+│   │       ├── ai_command.py      # AI-driven testing (NEW!)
+│   │       ├── mobile_command.py  # Native app testing
+│   │       └── web_command.py     # Web app testing
+│   ├── ai/                   # AI-driven testing (NEW! 🚀)
+│   │   ├── claude_code_client.py  # Claude Code CLI integration
+│   │   └── templates/       # AI prompt templates
+│   │       ├── app_claude.md      # Android app testing guide
+│   │       └── web_claude.md      # Web testing guide
 │   ├── device/               # Device communication (ADB)
 │   │   ├── adb_manager.py   # ADB wrapper
 │   │   ├── app_manager.py   # App lifecycle management
@@ -276,9 +558,13 @@ smartmonkey/
 │   │   ├── state.py         # UI state management
 │   │   ├── ui_parser.py     # UIAutomator parser
 │   │   └── strategies/      # Exploration strategies
-│   │       ├── base_strategy.py
-│   │       ├── random_strategy.py
-│   │       └── weighted_strategy.py
+│   │       ├── base.py           # Base strategy
+│   │       ├── random.py         # Random strategy
+│   │       ├── weighted.py       # Weighted strategy
+│   │       └── ai_strategy.py    # AI strategy (NEW!)
+│   ├── web/                  # Web testing (Chrome DevTools)
+│   │   ├── chrome_controller.py  # Chrome DevTools Protocol
+│   │   └── web_navigator.py      # Web navigation logic
 │   ├── reporting/            # Report generation
 │   │   └── report_generator.py  # JSON/Text reports
 │   └── utils/                # Utilities
@@ -386,13 +672,23 @@ Actions Performed:
 
 ## 🎯 Exploration Strategies
 
-### Weighted Strategy (Default)
+### AI Strategy (NEW! 🚀)
+- **Vision-based analysis**: Claude Code analyzes screenshots to understand UI context
+- **Mission-oriented**: Follows specific testing goals you define
+- **Context-aware decisions**: Reads text, identifies UI elements, judges relevance
+- **Smart popup handling**: Closes irrelevant ads, explores mission-relevant content
+- **Hybrid precision**: Combines AI vision with UI hierarchy for accurate tapping
+- **Recommended for**: Complex scenarios, mission-based testing, realistic user flows
+- **Use case**: E-commerce testing, onboarding flows, form completion
+
+### Weighted Strategy (Traditional)
 - **Prioritizes unvisited elements**: 10x weight for new elements
 - **Better coverage**: Explores unique UI states more thoroughly
 - **Smart targeting**: Bonus for buttons and submit actions
 - **Recommended for**: Thorough testing and code coverage
+- **Use case**: Systematic exploration of app features
 
-### Random Strategy
+### Random Strategy (Traditional)
 - **Random selection**: Picks any clickable element randomly
 - **Faster execution**: No state tracking overhead
 - **Good for**: Quick smoke testing and chaos engineering
@@ -500,18 +796,35 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🗺️ Roadmap
 
-### v0.2.0 (Planned)
-- [ ] Crash/ANR detection layer enhancements
-- [ ] HTML report generation
-- [ ] DFS and BFS exploration strategies
+### v0.2.1 (✅ Completed - 2025-11-06)
+- ✅ **MCP (Model Context Protocol) integration** for Claude Desktop
+- ✅ Natural language testing interface
+- ✅ 4 MCP tools: list_devices, run_ai_test, run_mobile_test, run_web_test
+- ✅ Background test execution with test_id tracking
+- ✅ Python 3.10+ support (3.12+ recommended)
+- ✅ Comprehensive MCP setup and testing documentation
+
+### v0.2.0 (✅ Completed - 2025-11-03)
+- ✅ AI-driven testing with Claude Code integration
+- ✅ Vision-based screen analysis
+- ✅ Mission-oriented testing for apps and web
+- ✅ Smart popup/ad handling with context awareness
+- ✅ Hybrid coordinate precision (AI + UI hierarchy)
+- ✅ Native mobile app testing (refactored CLI)
+- ✅ Web app testing with Chrome DevTools
 
 ### v0.3.0 (Planned)
+- [ ] Enhanced AI strategies (multi-step planning)
+- [ ] AI learning from test failures
+- [ ] Crash/ANR detection layer enhancements
+- [ ] HTML report generation with AI insights
 - [ ] Performance monitoring (FPS, memory, CPU)
-- [ ] Configuration file support (YAML)
-- [ ] Code coverage tracking
 
 ### v0.4.0+ (Future)
-- [ ] ML-based exploration strategy
+- [ ] Multi-agent AI testing (parallel exploration)
+- [ ] Custom AI prompt templates
+- [ ] Configuration file support (YAML)
+- [ ] Code coverage tracking
 - [ ] CI/CD integration (GitHub Actions, Jenkins)
 - [ ] Cloud testing support
 
@@ -519,7 +832,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- **Android Debug Bridge (ADB)** - Device communication
+- **Claude Code (Anthropic)** - AI-driven vision-based testing and screen analysis
+- **Android Debug Bridge (ADB)** - Device communication and control
+- **Chrome DevTools Protocol** - Web app testing and DOM manipulation
 - **UIAutomator** - UI hierarchy parsing
 - **Grafana** - Data visualization platform
 - **Infinity Data Source** - JSON data loading for Grafana
